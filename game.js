@@ -6,6 +6,7 @@ const W = 800;
 const H = 600;
 
 // ── Input ─────────────────────────────────────────────────────────────────────
+
 const keys = {};
 const justPressed = {};
 
@@ -62,8 +63,15 @@ const RADII  = [0, 16, 30, 50];   // por tamaño 1, 2, 3
 const SPEEDS = [0, 85, 55, 32];   // velocidad base por tamaño
 const POINTS = [0, 100, 50, 20];  // puntos por tamaño
 
+// Forma fija (normalizada a radio 1) de un asteroide grande con muesca cóncava
+const CRAGGY_SHAPE = [
+  [-0.10, -0.83], [ 0.43, -0.66], [ 0.38, -0.21], [ 0.93, -0.01],
+  [ 0.76,  0.54], [ 0.38,  0.65], [ 0.03,  0.92], [-0.62,  0.68],
+  [-1.00,  0.06], [-0.86, -0.45], [-0.34, -0.69],
+];
+
 class Asteroid {
-  constructor(x, y, size = 3) {
+  constructor(x, y, size = 3, craggy = false) {
     this.x    = x;
     this.y    = y;
     this.size = size;
@@ -77,13 +85,18 @@ class Asteroid {
     this.rotSpeed = rand(-1.2, 1.2);
     this.rot = rand(0, Math.PI * 2);
 
-    // Polígono irregular
-    const n = randInt(8, 13);
-    this.verts = [];
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const r = this.radius * rand(0.6, 1.0);
-      this.verts.push([Math.cos(a) * r, Math.sin(a) * r]);
+    if (craggy) {
+      // Forma especial basada en referencia: polígono cóncavo irregular
+      this.verts = CRAGGY_SHAPE.map(([nx, ny]) => [nx * this.radius, ny * this.radius]);
+    } else {
+      // Polígono irregular
+      const n = randInt(8, 13);
+      this.verts = [];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const r = this.radius * rand(0.6, 1.0);
+        this.verts.push([Math.cos(a) * r, Math.sin(a) * r]);
+      }
     }
   }
 
@@ -249,7 +262,7 @@ function spawnAsteroids(count) {
       x = rand(0, W);
       y = rand(0, H);
     } while (Math.hypot(x - W / 2, y - H / 2) < SAFE_DIST);
-    asteroids.push(new Asteroid(x, y, 3));
+    asteroids.push(new Asteroid(x, y, 3, Math.random() < 0.3));
   }
 }
 
